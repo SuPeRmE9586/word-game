@@ -1,0 +1,860 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Word Master - Learn 1000 English Words</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            min-height: 100vh;
+            background: linear-gradient(135deg, #0f0c29 0%, #302b63 50%, #24243e 100%);
+            font-family: system-ui, -apple-system, sans-serif;
+            color: #fff;
+            padding: 20px;
+        }
+        .container { max-width: 600px; margin: 0 auto; }
+        .title {
+            text-align: center;
+            font-size: 2.5rem;
+            font-weight: bold;
+            background: linear-gradient(90deg, #f857a6, #ff5858);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 10px;
+        }
+        .subtitle { text-align: center; opacity: 0.7; margin-bottom: 30px; }
+        .stats {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+        }
+        .stat-box {
+            background: rgba(248,87,166,0.2);
+            padding: 15px 25px;
+            border-radius: 15px;
+            text-align: center;
+        }
+        .stat-box.score { background: rgba(255,88,88,0.2); }
+        .stat-number { font-size: 1.8rem; font-weight: bold; }
+        .stat-label { font-size: 0.9rem; opacity: 0.7; }
+        .level-select { text-align: center; margin-bottom: 30px; }
+        .level-buttons { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; margin-top: 15px; }
+        .level-btn {
+            width: 50px; height: 50px;
+            border-radius: 12px;
+            border: none;
+            background: rgba(255,255,255,0.1);
+            color: #fff;
+            font-size: 1.1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .level-btn.active { background: linear-gradient(135deg, #f857a6, #ff5858); }
+        .level-btn:hover { transform: scale(1.1); }
+        .mode-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+        }
+        .mode-btn {
+            padding: 25px;
+            border-radius: 15px;
+            border: none;
+            color: #fff;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-align: center;
+        }
+        .mode-btn:hover { transform: translateY(-3px); }
+        .mode-btn .icon { font-size: 2rem; margin-bottom: 10px; }
+        .mode-btn .name { font-size: 1.1rem; font-weight: bold; }
+        .mode-flashcards { background: linear-gradient(135deg, #f857a6, #f857a688); }
+        .mode-quiz { background: linear-gradient(135deg, #ff5858, #ff585888); }
+        .mode-dialogue { background: linear-gradient(135deg, #6366f1, #6366f188); }
+        .mode-story { background: linear-gradient(135deg, #10b981, #10b98188); }
+        .back-btn {
+            background: rgba(255,255,255,0.1);
+            color: #fff;
+            padding: 10px 20px;
+            border-radius: 10px;
+            border: none;
+            cursor: pointer;
+            margin-bottom: 20px;
+        }
+        .back-btn:hover { background: rgba(255,255,255,0.2); }
+        .card-container {
+            margin: 30px auto;
+            width: 100%;
+            max-width: 350px;
+            height: 200px;
+            perspective: 1000px;
+            cursor: pointer;
+        }
+        .card {
+            width: 100%;
+            height: 100%;
+            position: relative;
+            transform-style: preserve-3d;
+            transition: transform 0.6s;
+        }
+        .card.flipped { transform: rotateY(180deg); }
+        .card-face {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            backface-visibility: hidden;
+            border-radius: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+        .card-front { background: linear-gradient(135deg, #f857a6, #ff5858); }
+        .card-back {
+            background: linear-gradient(135deg, #6366f1, #8b5cf6);
+            transform: rotateY(180deg);
+        }
+        .card-word { font-size: 2.5rem; font-weight: bold; }
+        .card-hint { margin-top: 15px; opacity: 0.7; }
+        .card-translation { font-size: 2rem; font-weight: bold; }
+        .card-original { margin-top: 10px; opacity: 0.8; }
+        .nav-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        .nav-btn {
+            padding: 15px 30px;
+            border-radius: 12px;
+            border: none;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: bold;
+            transition: transform 0.2s;
+        }
+        .nav-btn:hover { transform: scale(1.05); }
+        .nav-btn.secondary { background: rgba(255,255,255,0.1); color: #fff; }
+        .nav-btn.success { background: linear-gradient(135deg, #10b981, #059669); color: #fff; }
+        .nav-btn.primary { background: linear-gradient(135deg, #f857a6, #ff5858); color: #fff; }
+        .learned-badge { text-align: center; color: #10b981; margin-top: 15px; }
+        .quiz-stats {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+        .quiz-stat {
+            background: rgba(255,255,255,0.1);
+            padding: 8px 15px;
+            border-radius: 10px;
+        }
+        .quiz-stat.streak { background: rgba(248,87,166,0.3); }
+        .quiz-question {
+            background: linear-gradient(135deg, #6366f1, #8b5cf6);
+            padding: 30px;
+            border-radius: 20px;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .quiz-prompt { opacity: 0.7; margin-bottom: 10px; }
+        .quiz-word { font-size: 2.5rem; font-weight: bold; }
+        .quiz-options {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+        .quiz-option {
+            padding: 15px;
+            border-radius: 12px;
+            border: 2px solid transparent;
+            background: rgba(255,255,255,0.1);
+            color: #fff;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .quiz-option:hover:not(:disabled) { background: rgba(255,255,255,0.2); }
+        .quiz-option:disabled { cursor: default; }
+        .quiz-option.correct { background: rgba(16,185,129,0.3); border-color: #10b981; }
+        .quiz-option.wrong { background: rgba(239,68,68,0.3); border-color: #ef4444; }
+        .quiz-result { text-align: center; margin-top: 20px; }
+        .quiz-result.success { color: #10b981; }
+        .quiz-result.error { color: #ef4444; }
+        .chat-container {
+            background: rgba(0,0,0,0.3);
+            border-radius: 20px;
+            padding: 20px;
+            height: 300px;
+            overflow-y: auto;
+            margin-bottom: 20px;
+        }
+        .chat-message {
+            display: flex;
+            margin-bottom: 10px;
+        }
+        .chat-message.user { justify-content: flex-end; }
+        .chat-message.ai { justify-content: flex-start; }
+        .chat-bubble {
+            max-width: 80%;
+            padding: 12px 18px;
+            border-radius: 18px;
+        }
+        .chat-message.user .chat-bubble {
+            background: linear-gradient(135deg, #f857a6, #ff5858);
+            border-radius: 18px 18px 4px 18px;
+        }
+        .chat-message.ai .chat-bubble {
+            background: rgba(255,255,255,0.1);
+            border-radius: 18px 18px 18px 4px;
+        }
+        .chat-hint {
+            background: rgba(255,255,255,0.05);
+            padding: 10px 15px;
+            border-radius: 10px;
+            margin-bottom: 10px;
+        }
+        .chat-form { display: flex; gap: 10px; }
+        .chat-input {
+            flex: 1;
+            padding: 15px;
+            border-radius: 12px;
+            border: 2px solid rgba(255,255,255,0.2);
+            background: rgba(255,255,255,0.05);
+            color: #fff;
+            font-size: 1rem;
+        }
+        .chat-input:focus { outline: none; border-color: rgba(255,255,255,0.4); }
+        .story-text {
+            background: linear-gradient(135deg, #10b981, #059669);
+            padding: 25px;
+            border-radius: 20px;
+            margin-bottom: 20px;
+            font-size: 1.2rem;
+            line-height: 1.6;
+        }
+        .story-choice {
+            width: 100%;
+            padding: 15px 20px;
+            border-radius: 12px;
+            border: none;
+            background: rgba(255,255,255,0.1);
+            color: #fff;
+            font-size: 1rem;
+            cursor: pointer;
+            text-align: left;
+            margin-bottom: 10px;
+            transition: all 0.2s;
+        }
+        .story-choice:hover { background: rgba(255,255,255,0.2); transform: translateX(5px); }
+        .story-words { display: block; font-size: 0.8rem; opacity: 0.6; margin-top: 5px; }
+        .story-path { margin-top: 20px; opacity: 0.5; font-size: 0.9rem; }
+        .page-title { text-align: center; margin-bottom: 10px; }
+        .page-subtitle { text-align: center; opacity: 0.6; margin-bottom: 20px; }
+        .hidden { display: none !important; }
+        @media (max-width: 500px) {
+            .title { font-size: 2rem; }
+            .mode-grid { grid-template-columns: 1fr; }
+            .quiz-options { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- MENU -->
+        <div id="menu-screen">
+            <h1 class="title">🎮 Word Master</h1>
+            <p class="subtitle">Learn 1000 English Words</p>
+            
+            <div class="stats">
+                <div class="stat-box">
+                    <div class="stat-number" id="learned-count">0</div>
+                    <div class="stat-label">Learned</div>
+                </div>
+                <div class="stat-box score">
+                    <div class="stat-number" id="total-score">0</div>
+                    <div class="stat-label">Score</div>
+                </div>
+            </div>
+
+            <div class="level-select">
+                <p>Select Level:</p>
+                <div class="level-buttons" id="level-buttons"></div>
+                <p style="margin-top: 10px; opacity: 0.6;" id="level-info">Level 1: 50 words</p>
+            </div>
+
+            <div class="mode-grid">
+                <button class="mode-btn mode-flashcards" onclick="startMode('flashcards')">
+                    <div class="icon">📇</div>
+                    <div class="name">Flashcards</div>
+                </button>
+                <button class="mode-btn mode-quiz" onclick="startMode('quiz')">
+                    <div class="icon">🎯</div>
+                    <div class="name">Quiz</div>
+                </button>
+                <button class="mode-btn mode-dialogue" onclick="startMode('dialogue')">
+                    <div class="icon">💬</div>
+                    <div class="name">Dialogue</div>
+                </button>
+                <button class="mode-btn mode-story" onclick="startMode('story')">
+                    <div class="icon">📖</div>
+                    <div class="name">Story</div>
+                </button>
+            </div>
+        </div>
+
+        <!-- FLASHCARDS -->
+        <div id="flashcards-screen" class="hidden">
+            <button class="back-btn" onclick="goToMenu()">← Back</button>
+            <h2 class="page-title">📇 Flashcards</h2>
+            <p class="page-subtitle" id="card-counter">Card 1 of 50</p>
+            
+            <div class="card-container" onclick="flipCard()">
+                <div class="card" id="flashcard">
+                    <div class="card-face card-front">
+                        <div class="card-word" id="card-en"></div>
+                        <div class="card-hint">Tap to flip</div>
+                    </div>
+                    <div class="card-face card-back">
+                        <div class="card-translation" id="card-ua"></div>
+                        <div class="card-original" id="card-en-back"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="nav-buttons">
+                <button class="nav-btn secondary" onclick="prevCard()">← Prev</button>
+                <button class="nav-btn success" onclick="markLearned()">✓ Know</button>
+                <button class="nav-btn secondary" onclick="nextCard()">Next →</button>
+            </div>
+            <div class="learned-badge hidden" id="learned-badge">✓ Learned!</div>
+        </div>
+
+        <!-- QUIZ -->
+        <div id="quiz-screen" class="hidden">
+            <button class="back-btn" onclick="goToMenu()">← Back</button>
+            <h2 class="page-title">🎯 Quiz</h2>
+            
+            <div class="quiz-stats">
+                <span class="quiz-stat" id="quiz-score">0/0</span>
+                <span class="quiz-stat streak">🔥 <span id="quiz-streak">0</span></span>
+            </div>
+
+            <div class="quiz-question">
+                <p class="quiz-prompt">What is the Ukrainian for:</p>
+                <div class="quiz-word" id="quiz-word"></div>
+            </div>
+
+            <div class="quiz-options" id="quiz-options"></div>
+            
+            <div class="quiz-result hidden" id="quiz-result"></div>
+            <div style="text-align: center; margin-top: 15px;">
+                <button class="nav-btn primary hidden" id="next-question-btn" onclick="nextQuestion()">Next →</button>
+            </div>
+        </div>
+
+        <!-- DIALOGUE -->
+        <div id="dialogue-screen" class="hidden">
+            <button class="back-btn" onclick="goToMenu()">← Back</button>
+            <h2 class="page-title">💬 Dialogue Practice</h2>
+            
+            <div class="chat-container" id="chat-container"></div>
+            
+            <div class="chat-hint" id="chat-hint"></div>
+            
+            <form class="chat-form" onsubmit="sendMessage(event)">
+                <input type="text" class="chat-input" id="chat-input" placeholder="Type in English...">
+                <button type="submit" class="nav-btn primary">Send</button>
+            </form>
+        </div>
+
+        <!-- STORY -->
+        <div id="story-screen" class="hidden">
+            <button class="back-btn" onclick="goToMenu()">← Back</button>
+            <h2 class="page-title">📖 The Lost Cat</h2>
+            <p class="page-subtitle">You see a small cat in the park. It looks lost.</p>
+            
+            <div class="story-text" id="story-text"></div>
+            <div id="story-choices"></div>
+            <p class="story-path" id="story-path"></p>
+        </div>
+    </div>
+
+    <script>
+        // Word data
+        const allWords = [
+            { en: "and", ua: "і, та" }, { en: "all", ua: "всі" }, { en: "boy", ua: "хлопець" },
+            { en: "car", ua: "машина" }, { en: "cat", ua: "кіт" }, { en: "day", ua: "день" },
+            { en: "end", ua: "кінець" }, { en: "family", ua: "сім'я" }, { en: "home", ua: "дім" },
+            { en: "it", ua: "воно" }, { en: "man", ua: "чоловік" }, { en: "name", ua: "ім'я" },
+            { en: "one", ua: "один" }, { en: "people", ua: "люди" }, { en: "read", ua: "читати" },
+            { en: "school", ua: "школа" }, { en: "speak", ua: "говорити" }, { en: "this", ua: "це" },
+            { en: "the", ua: "артикль" }, { en: "you", ua: "ти, ви" }, { en: "ask", ua: "питати" },
+            { en: "book", ua: "книга" }, { en: "child", ua: "дитина" }, { en: "can", ua: "могти" },
+            { en: "dog", ua: "собака" }, { en: "eye", ua: "око" }, { en: "first", ua: "перший" },
+            { en: "go", ua: "йти" }, { en: "he", ua: "він" }, { en: "in", ua: "в, у" },
+            { en: "learn", ua: "вчити" }, { en: "morning", ua: "ранок" }, { en: "open", ua: "відкривати" },
+            { en: "play", ua: "грати" }, { en: "question", ua: "питання" }, { en: "room", ua: "кімната" },
+            { en: "say", ua: "сказати" }, { en: "start", ua: "почати" }, { en: "today", ua: "сьогодні" },
+            { en: "word", ua: "слово" }, { en: "about", ua: "про" }, { en: "at", ua: "біля" },
+            { en: "brother", ua: "брат" }, { en: "chair", ua: "стілець" }, { en: "drink", ua: "пити" },
+            { en: "easy", ua: "легкий" }, { en: "father", ua: "батько" }, { en: "girl", ua: "дівчина" },
+            { en: "help", ua: "допомагати" }, { en: "know", ua: "знати" }, { en: "my", ua: "мій" },
+            { en: "new", ua: "новий" }, { en: "please", ua: "будь ласка" }, { en: "paper", ua: "папір" },
+            { en: "rich", ua: "багатий" }, { en: "she", ua: "вона" }, { en: "show", ua: "показувати" },
+            { en: "son", ua: "син" }, { en: "they", ua: "вони" }, { en: "what", ua: "що" },
+            { en: "always", ua: "завжди" }, { en: "body", ua: "тіло" }, { en: "be", ua: "бути" },
+            { en: "cry", ua: "плакати" }, { en: "careful", ua: "обережний" }, { en: "door", ua: "двері" },
+            { en: "everything", ua: "все" }, { en: "face", ua: "обличчя" }, { en: "her", ua: "її" },
+            { en: "if", ua: "якщо" }, { en: "many", ua: "багато" }, { en: "no", ua: "ні" },
+            { en: "place", ua: "місце" }, { en: "pen", ua: "ручка" }, { en: "road", ua: "дорога" },
+            { en: "student", ua: "студент" }, { en: "stop", ua: "зупинити" }, { en: "two", ua: "два" },
+            { en: "where", ua: "де" }, { en: "want", ua: "хотіти" }, { en: "answer", ua: "відповідь" },
+            { en: "between", ua: "між" }, { en: "clear", ua: "ясний" }, { en: "country", ua: "країна" },
+            { en: "dance", ua: "танцювати" }, { en: "do", ua: "робити" }, { en: "each", ua: "кожен" },
+            { en: "friend", ua: "друг" }, { en: "his", ua: "його" }, { en: "job", ua: "робота" },
+            { en: "life", ua: "життя" }, { en: "more", ua: "більше" }, { en: "park", ua: "парк" },
+            { en: "person", ua: "людина" }, { en: "ready", ua: "готовий" }, { en: "second", ua: "другий" },
+            { en: "soon", ua: "скоро" }, { en: "that", ua: "той" }, { en: "we", ua: "ми" }, { en: "why", ua: "чому" },
+            { en: "able", ua: "здатний" }, { en: "but", ua: "але" }, { en: "before", ua: "до" },
+            { en: "close", ua: "закривати" }, { en: "clean", ua: "чистий" }, { en: "dream", ua: "мрія" },
+            { en: "eight", ua: "вісім" }, { en: "for", ua: "для" }, { en: "hand", ua: "рука" },
+            { en: "inside", ua: "всередині" }, { en: "now", ua: "зараз" }, { en: "or", ua: "або" },
+            { en: "picture", ua: "картина" }, { en: "river", ua: "річка" }, { en: "shop", ua: "магазин" },
+            { en: "ship", ua: "корабель" }, { en: "sit", ua: "сидіти" }, { en: "table", ua: "стіл" },
+            { en: "very", ua: "дуже" }, { en: "write", ua: "писати" }, { en: "air", ua: "повітря" },
+            { en: "black", ua: "чорний" }, { en: "cheese", ua: "сир" }, { en: "cinema", ua: "кінотеатр" },
+            { en: "daughter", ua: "дочка" }, { en: "eat", ua: "їсти" }, { en: "from", ua: "від" },
+            { en: "good", ua: "добрий" }, { en: "head", ua: "голова" }, { en: "important", ua: "важливий" },
+            { en: "land", ua: "земля" }, { en: "money", ua: "гроші" }, { en: "problem", ua: "проблема" },
+            { en: "pay", ua: "платити" }, { en: "run", ua: "бігти" }, { en: "see", ua: "бачити" },
+            { en: "same", ua: "такий самий" }, { en: "send", ua: "надсилати" }, { en: "thing", ua: "річ" },
+            { en: "work", ua: "працювати" }, { en: "any", ua: "будь-який" }, { en: "as", ua: "як" },
+            { en: "better", ua: "кращий" }, { en: "come", ua: "приходити" }, { en: "cold", ua: "холодний" },
+            { en: "doctor", ua: "лікар" }, { en: "find", ua: "знаходити" }, { en: "game", ua: "гра" },
+            { en: "idea", ua: "ідея" }, { en: "kind", ua: "добрий" }, { en: "live", ua: "жити" },
+            { en: "make", ua: "робити" }, { en: "popular", ua: "популярний" }, { en: "peace", ua: "мир" },
+            { en: "right", ua: "правий" }, { en: "small", ua: "маленький" }, { en: "so", ua: "так" },
+            { en: "some", ua: "деякі" }, { en: "there", ua: "там" }, { en: "wait", ua: "чекати" },
+            { en: "again", ua: "знову" }, { en: "back", ua: "назад" }, { en: "could", ua: "міг би" },
+            { en: "chance", ua: "шанс" }, { en: "document", ua: "документ" }, { en: "egg", ua: "яйце" },
+            { en: "fire", ua: "вогонь" }, { en: "give", ua: "давати" }, { en: "information", ua: "інформація" },
+            { en: "light", ua: "світло" }, { en: "may", ua: "може" }, { en: "often", ua: "часто" },
+            { en: "prefer", ua: "віддавати перевагу" }, { en: "put", ua: "класти" }, { en: "red", ua: "червоний" },
+            { en: "stone", ua: "камінь" }, { en: "such", ua: "такий" }, { en: "think", ua: "думати" },
+            { en: "understand", ua: "розуміти" }, { en: "visit", ua: "відвідувати" }, { en: "around", ua: "навколо" },
+            { en: "best", ua: "найкращий" }, { en: "call", ua: "дзвонити" }, { en: "cut", ua: "різати" },
+            { en: "dinner", ua: "вечеря" }, { en: "down", ua: "вниз" }, { en: "explain", ua: "пояснювати" },
+            { en: "get", ua: "отримувати" }, { en: "interesting", ua: "цікавий" }, { en: "long", ua: "довгий" },
+            { en: "move", ua: "рухатися" }, { en: "out", ua: "назовні" }, { en: "page", ua: "сторінка" },
+            { en: "rest", ua: "відпочинок" }, { en: "reach", ua: "досягати" }, { en: "stand", ua: "стояти" },
+            { en: "should", ua: "повинен" }, { en: "set", ua: "набір" }, { en: "time", ua: "час" }, { en: "up", ua: "вгору" },
+            { en: "age", ua: "вік" }, { en: "big", ua: "великий" }, { en: "because", ua: "тому що" },
+            { en: "camera", ua: "камера" }, { en: "city", ua: "місто" }, { en: "dress", ua: "сукня" },
+            { en: "evening", ua: "вечір" }, { en: "free", ua: "вільний" }, { en: "have", ua: "мати" },
+            { en: "ill", ua: "хворий" }, { en: "like", ua: "подобатися" }, { en: "mother", ua: "мати" },
+            { en: "old", ua: "старий" }, { en: "police", ua: "поліція" }, { en: "remember", ua: "пам'ятати" },
+            { en: "study", ua: "вивчати" }, { en: "street", ua: "вулиця" }, { en: "teacher", ua: "вчитель" },
+            { en: "voice", ua: "голос" }, { en: "water", ua: "вода" }, { en: "also", ua: "також" },
+            { en: "box", ua: "коробка" }, { en: "change", ua: "змінювати" }, { en: "class", ua: "клас" },
+            { en: "drive", ua: "керувати" }, { en: "difficult", ua: "важкий" }, { en: "food", ua: "їжа" },
+            { en: "great", ua: "чудовий" }, { en: "happy", ua: "щасливий" }, { en: "juice", ua: "сік" },
+            { en: "meet", ua: "зустрічати" }, { en: "need", ua: "потребувати" }, { en: "pretty", ua: "гарний" },
+            { en: "quite", ua: "досить" }, { en: "real", ua: "справжній" }, { en: "sad", ua: "сумний" },
+            { en: "spring", ua: "весна" }, { en: "star", ua: "зірка" }, { en: "take", ua: "брати" },
+            { en: "yes", ua: "так" }, { en: "alone", ua: "сам" }, { en: "action", ua: "дія" },
+            { en: "breakfast", ua: "сніданок" }, { en: "continue", ua: "продовжувати" }, { en: "dead", ua: "мертвий" },
+            { en: "enjoy", ua: "насолоджуватися" }, { en: "full", ua: "повний" }, { en: "garden", ua: "сад" },
+            { en: "house", ua: "будинок" }, { en: "journey", ua: "подорож" }, { en: "much", ua: "багато" },
+            { en: "nothing", ua: "нічого" }, { en: "phone", ua: "телефон" }, { en: "price", ua: "ціна" },
+            { en: "result", ua: "результат" }, { en: "sister", ua: "сестра" }, { en: "sun", ua: "сонце" },
+            { en: "tell", ua: "розповідати" }, { en: "view", ua: "вид" }, { en: "with", ua: "з" },
+            { en: "against", ua: "проти" }, { en: "bus", ua: "автобус" }, { en: "church", ua: "церква" },
+            { en: "company", ua: "компанія" }, { en: "desert", ua: "пустеля" }, { en: "expensive", ua: "дорогий" },
+            { en: "flower", ua: "квітка" }, { en: "green", ua: "зелений" }, { en: "impossible", ua: "неможливий" },
+            { en: "leave", ua: "залишати" }, { en: "month", ua: "місяць" }, { en: "on", ua: "на" },
+            { en: "plan", ua: "план" }, { en: "possible", ua: "можливий" }, { en: "return", ua: "повертатися" },
+            { en: "something", ua: "щось" }, { en: "sea", ua: "море" }, { en: "save", ua: "зберігати" },
+            { en: "together", ua: "разом" }, { en: "woman", ua: "жінка" }, { en: "anything", ua: "будь-що" },
+            { en: "army", ua: "армія" }, { en: "bad", ua: "поганий" }, { en: "cover", ua: "покривати" },
+            { en: "culture", ua: "культура" }, { en: "decision", ua: "рішення" }, { en: "example", ua: "приклад" },
+            { en: "feel", ua: "відчувати" }, { en: "how", ua: "як" }, { en: "island", ua: "острів" },
+            { en: "member", ua: "член" }, { en: "next", ua: "наступний" }, { en: "position", ua: "позиція" },
+            { en: "present", ua: "подарунок" }, { en: "record", ua: "запис" }, { en: "sweet", ua: "солодкий" },
+            { en: "sleep", ua: "спати" }, { en: "try", ua: "пробувати" }, { en: "under", ua: "під" },
+            { en: "world", ua: "світ" }, { en: "after", ua: "після" }, { en: "bed", ua: "ліжко" },
+            { en: "buy", ua: "купувати" }, { en: "catch", ua: "ловити" }, { en: "corner", ua: "кут" },
+            { en: "distance", ua: "відстань" }, { en: "education", ua: "освіта" }, { en: "fast", ua: "швидкий" },
+            { en: "here", ua: "тут" }, { en: "interest", ua: "інтерес" }, { en: "letter", ua: "лист" },
+            { en: "never", ua: "ніколи" }, { en: "president", ua: "президент" }, { en: "part", ua: "частина" },
+            { en: "round", ua: "круглий" }, { en: "several", ua: "декілька" }, { en: "sound", ua: "звук" },
+            { en: "story", ua: "історія" }, { en: "talk", ua: "розмовляти" }, { en: "week", ua: "тиждень" },
+            { en: "almost", ua: "майже" }, { en: "bread", ua: "хліб" }, { en: "chief", ua: "головний" },
+            { en: "control", ua: "контроль" }, { en: "dear", ua: "дорогий" }, { en: "every", ua: "кожен" },
+            { en: "few", ua: "мало" }, { en: "gold", ua: "золото" }, { en: "invite", ua: "запрошувати" },
+            { en: "late", ua: "пізно" }, { en: "most", ua: "найбільш" }, { en: "only", ua: "тільки" },
+            { en: "product", ua: "продукт" }, { en: "public", ua: "публічний" }, { en: "receive", ua: "отримувати" },
+            { en: "strong", ua: "сильний" }, { en: "sorry", ua: "вибач" }, { en: "then", ua: "тоді" },
+            { en: "too", ua: "також" }, { en: "way", ua: "шлях" }, { en: "across", ua: "через" },
+            { en: "art", ua: "мистецтво" }, { en: "bring", ua: "приносити" }, { en: "coffee", ua: "кава" },
+            { en: "lesson", ua: "урок" }, { en: "music", ua: "музика" }, { en: "orange", ua: "апельсин" },
+            { en: "perfect", ua: "ідеальний" }, { en: "weather", ua: "погода" }, { en: "hotel", ua: "готель" },
+            { en: "train", ua: "поїзд" }, { en: "warm", ua: "теплий" }, { en: "hospital", ua: "лікарня" },
+            { en: "message", ua: "повідомлення" }, { en: "night", ua: "ніч" }, { en: "wrong", ua: "неправильний" },
+            { en: "amount", ua: "кількість" }, { en: "brown", ua: "коричневий" }, { en: "bank", ua: "банк" },
+            { en: "university", ua: "університет" }, { en: "accept", ua: "приймати" }, { en: "bag", ua: "сумка" },
+            { en: "hungry", ua: "голодний" }, { en: "law", ua: "закон" }, { en: "swim", ua: "плавати" },
+            { en: "store", ua: "магазин" }, { en: "win", ua: "перемагати" }, { en: "boat", ua: "човен" },
+            { en: "history", ua: "історія" }, { en: "map", ua: "карта" }, { en: "silver", ua: "срібло" },
+            { en: "wash", ua: "мити" }, { en: "attack", ua: "атака" }, { en: "butter", ua: "масло" },
+            { en: "college", ua: "коледж" }, { en: "listen", ua: "слухати" }, { en: "marry", ua: "одружуватися" },
+            { en: "quiet", ua: "тихий" }, { en: "taste", ua: "смак" }, { en: "vegetable", ua: "овоч" },
+            { en: "wall", ua: "стіна" }, { en: "arrive", ua: "прибувати" }, { en: "born", ua: "народжений" },
+            { en: "correct", ua: "правильний" }, { en: "clothes", ua: "одяг" }, { en: "English", ua: "англійська" },
+            { en: "forget", ua: "забувати" }, { en: "goal", ua: "мета" }, { en: "hate", ua: "ненавидіти" },
+            { en: "last", ua: "останній" }, { en: "main", ua: "головний" }, { en: "promise", ua: "обіцянка" },
+            { en: "useful", ua: "корисний" }, { en: "without", ua: "без" }, { en: "animal", ua: "тварина" },
+            { en: "beer", ua: "пиво" }, { en: "calm", ua: "спокійний" }, { en: "copy", ua: "копія" },
+            { en: "dish", ua: "страва" }, { en: "foreign", ua: "іноземний" }, { en: "husband", ua: "чоловік" },
+            { en: "opinion", ua: "думка" }, { en: "rule", ua: "правило" }, { en: "sign", ua: "знак" },
+            { en: "support", ua: "підтримка" }, { en: "year", ua: "рік" }, { en: "wonderful", ua: "чудовий" },
+            { en: "afraid", ua: "боятися" }, { en: "circle", ua: "коло" }, { en: "count", ua: "рахувати" },
+            { en: "death", ua: "смерть" }, { en: "funny", ua: "смішний" }, { en: "horse", ua: "кінь" },
+            { en: "lake", ua: "озеро" }, { en: "modern", ua: "сучасний" }, { en: "necessary", ua: "необхідний" },
+            { en: "young", ua: "молодий" }, { en: "wish", ua: "бажання" }, { en: "allow", ua: "дозволяти" },
+            { en: "battle", ua: "битва" }, { en: "climb", ua: "підніматися" }, { en: "complete", ua: "повний" },
+            { en: "fresh", ua: "свіжий" }, { en: "hole", ua: "діра" }, { en: "marriage", ua: "шлюб" },
+            { en: "outside", ua: "зовні" }, { en: "sing", ua: "співати" }, { en: "soft", ua: "м'який" },
+            { en: "adventure", ua: "пригода" }, { en: "although", ua: "хоча" }, { en: "bottom", ua: "низ" },
+            { en: "comfort", ua: "комфорт" }, { en: "laugh", ua: "сміятися" }, { en: "middle", ua: "середина" },
+            { en: "wild", ua: "дикий" }, { en: "attempt", ua: "спроба" }, { en: "breathe", ua: "дихати" },
+            { en: "cook", ua: "готувати" }, { en: "hot", ua: "гарячий" }, { en: "lose", ua: "втрачати" },
+            { en: "mountain", ua: "гора" }, { en: "safe", ua: "безпечний" }, { en: "wood", ua: "дерево" },
+            { en: "area", ua: "область" }, { en: "bath", ua: "ванна" }, { en: "event", ua: "подія" },
+            { en: "foot", ua: "нога" }, { en: "hide", ua: "ховати" }, { en: "match", ua: "матч" },
+            { en: "nervous", ua: "нервовий" }, { en: "smell", ua: "запах" }, { en: "shut", ua: "закривати" },
+            { en: "jacket", ua: "куртка" }, { en: "leg", ua: "нога" }, { en: "metal", ua: "метал" },
+            { en: "brave", ua: "хоробрий" }, { en: "experience", ua: "досвід" }, { en: "heavy", ua: "важкий" },
+            { en: "medicine", ua: "медицина" }, { en: "noise", ua: "шум" }, { en: "trouble", ua: "проблема" },
+            { en: "west", ua: "захід" }, { en: "health", ua: "здоров'я" }, { en: "leader", ua: "лідер" },
+            { en: "thin", ua: "тонкий" }, { en: "spot", ua: "місце" }
+        ];
+
+        // Story data
+        const storyScenes = [
+            { text: "The cat looks at you. What do you do?", choices: [
+                { text: "Help the cat", next: 1, words: ["help", "cat"] },
+                { text: "Go home", next: 2, words: ["go", "home"] }
+            ]},
+            { text: "You help the cat. A boy comes. 'Is this your cat?' you ask.", choices: [
+                { text: "Yes! Thank you!", next: 3, words: ["yes", "thank"] }
+            ]},
+            { text: "You go home but think about the cat all day.", choices: [
+                { text: "Go back to park", next: 0, words: ["go", "park"] }
+            ]},
+            { text: "The boy is happy! You made a new friend! THE END 🎉", choices: [], ending: true }
+        ];
+
+        // Dialogue scenarios
+        const dialogueScenarios = [
+            { prompt: "Say your name", hint: "My name is...", next: "Nice to meet you! Where do you live?" },
+            { prompt: "Say where you live", hint: "I live in...", next: "Great! What do you like to do?" },
+            { prompt: "Say what you like", hint: "I like to...", next: "That sounds fun! Do you have any pets?" },
+            { prompt: "Answer about pets", hint: "Yes, I have... / No, I don't have...", next: "Wonderful conversation! 🎉" }
+        ];
+
+        // State
+        let currentLevel = 1;
+        let totalScore = 0;
+        let learnedWords = new Set();
+        let cardIndex = 0;
+        let quizCorrect = 0;
+        let quizTotal = 0;
+        let quizStreak = 0;
+        let currentQuizWord = null;
+        let dialogueStep = 0;
+        let storyScene = 0;
+        let storyPath = [];
+
+        // Load from localStorage
+        function loadState() {
+            const saved = localStorage.getItem('wordMasterState');
+            if (saved) {
+                const state = JSON.parse(saved);
+                currentLevel = state.currentLevel || 1;
+                totalScore = state.totalScore || 0;
+                learnedWords = new Set(state.learnedWords || []);
+            }
+            updateStats();
+        }
+
+        function saveState() {
+            localStorage.setItem('wordMasterState', JSON.stringify({
+                currentLevel,
+                totalScore,
+                learnedWords: [...learnedWords]
+            }));
+        }
+
+        function getLevelWords() {
+            const start = (currentLevel - 1) * 50;
+            return allWords.slice(start, Math.min(start + 50, allWords.length));
+        }
+
+        function updateStats() {
+            document.getElementById('learned-count').textContent = learnedWords.size;
+            document.getElementById('total-score').textContent = totalScore;
+            document.getElementById('level-info').textContent = `Level ${currentLevel}: 50 words`;
+        }
+
+        // Initialize level buttons
+        function initLevelButtons() {
+            const container = document.getElementById('level-buttons');
+            for (let i = 1; i <= 10; i++) {
+                const btn = document.createElement('button');
+                btn.className = 'level-btn' + (i === currentLevel ? ' active' : '');
+                btn.textContent = i;
+                btn.onclick = () => selectLevel(i);
+                container.appendChild(btn);
+            }
+        }
+
+        function selectLevel(level) {
+            currentLevel = level;
+            document.querySelectorAll('.level-btn').forEach((btn, i) => {
+                btn.classList.toggle('active', i + 1 === level);
+            });
+            updateStats();
+            saveState();
+        }
+
+        function showScreen(screenId) {
+            document.querySelectorAll('[id$="-screen"]').forEach(s => s.classList.add('hidden'));
+            document.getElementById(screenId).classList.remove('hidden');
+        }
+
+        function goToMenu() {
+            showScreen('menu-screen');
+        }
+
+        function startMode(mode) {
+            if (mode === 'flashcards') {
+                cardIndex = 0;
+                updateFlashcard();
+                showScreen('flashcards-screen');
+            } else if (mode === 'quiz') {
+                quizCorrect = 0;
+                quizTotal = 0;
+                quizStreak = 0;
+                generateQuizQuestion();
+                showScreen('quiz-screen');
+            } else if (mode === 'dialogue') {
+                dialogueStep = 0;
+                initDialogue();
+                showScreen('dialogue-screen');
+            } else if (mode === 'story') {
+                storyScene = 0;
+                storyPath = [];
+                updateStory();
+                showScreen('story-screen');
+            }
+        }
+
+        // FLASHCARDS
+        function updateFlashcard() {
+            const words = getLevelWords();
+            const word = words[cardIndex];
+            document.getElementById('card-en').textContent = word.en;
+            document.getElementById('card-ua').textContent = word.ua;
+            document.getElementById('card-en-back').textContent = word.en;
+            document.getElementById('card-counter').textContent = `Card ${cardIndex + 1} of ${words.length}`;
+            document.getElementById('flashcard').classList.remove('flipped');
+            document.getElementById('learned-badge').classList.toggle('hidden', !learnedWords.has(word.en));
+        }
+
+        function flipCard() {
+            document.getElementById('flashcard').classList.toggle('flipped');
+        }
+
+        function nextCard() {
+            const words = getLevelWords();
+            cardIndex = (cardIndex + 1) % words.length;
+            updateFlashcard();
+        }
+
+        function prevCard() {
+            const words = getLevelWords();
+            cardIndex = (cardIndex - 1 + words.length) % words.length;
+            updateFlashcard();
+        }
+
+        function markLearned() {
+            const words = getLevelWords();
+            const word = words[cardIndex];
+            learnedWords.add(word.en);
+            totalScore += 5;
+            updateStats();
+            saveState();
+            nextCard();
+        }
+
+        // QUIZ
+        function generateQuizQuestion() {
+            const words = getLevelWords();
+            currentQuizWord = words[Math.floor(Math.random() * words.length)];
+            const wrongOptions = words.filter(w => w.en !== currentQuizWord.en)
+                .sort(() => Math.random() - 0.5).slice(0, 3);
+            const options = [...wrongOptions, currentQuizWord].sort(() => Math.random() - 0.5);
+
+            document.getElementById('quiz-word').textContent = currentQuizWord.en;
+            document.getElementById('quiz-score').textContent = `${quizCorrect}/${quizTotal}`;
+            document.getElementById('quiz-streak').textContent = quizStreak;
+
+            const container = document.getElementById('quiz-options');
+            container.innerHTML = '';
+            options.forEach(opt => {
+                const btn = document.createElement('button');
+                btn.className = 'quiz-option';
+                btn.textContent = opt.ua;
+                btn.onclick = () => selectQuizAnswer(btn, opt);
+                container.appendChild(btn);
+            });
+
+            document.getElementById('quiz-result').classList.add('hidden');
+            document.getElementById('next-question-btn').classList.add('hidden');
+        }
+
+        function selectQuizAnswer(btn, selected) {
+            const buttons = document.querySelectorAll('.quiz-option');
+            buttons.forEach(b => b.disabled = true);
+
+            quizTotal++;
+            const isCorrect = selected.en === currentQuizWord.en;
+
+            buttons.forEach(b => {
+                const word = allWords.find(w => w.ua === b.textContent);
+                if (word && word.en === currentQuizWord.en) {
+                    b.classList.add('correct');
+                }
+            });
+
+            if (isCorrect) {
+                quizCorrect++;
+                quizStreak++;
+                totalScore += 10 + quizStreak * 2;
+                document.getElementById('quiz-result').textContent = '✓ Correct!';
+                document.getElementById('quiz-result').className = 'quiz-result success';
+            } else {
+                btn.classList.add('wrong');
+                quizStreak = 0;
+                document.getElementById('quiz-result').textContent = '✗ Wrong!';
+                document.getElementById('quiz-result').className = 'quiz-result error';
+            }
+
+            document.getElementById('quiz-score').textContent = `${quizCorrect}/${quizTotal}`;
+            document.getElementById('quiz-streak').textContent = quizStreak;
+            document.getElementById('quiz-result').classList.remove('hidden');
+            document.getElementById('next-question-btn').classList.remove('hidden');
+            updateStats();
+            saveState();
+        }
+
+        function nextQuestion() {
+            generateQuizQuestion();
+        }
+
+        // DIALOGUE
+        function initDialogue() {
+            const container = document.getElementById('chat-container');
+            container.innerHTML = '';
+            addChatMessage('ai', 'Hello! What is your name?');
+            updateDialogueHint();
+        }
+
+        function addChatMessage(from, text) {
+            const container = document.getElementById('chat-container');
+            const div = document.createElement('div');
+            div.className = `chat-message ${from}`;
+            div.innerHTML = `<div class="chat-bubble">${text}</div>`;
+            container.appendChild(div);
+            container.scrollTop = container.scrollHeight;
+        }
+
+        function updateDialogueHint() {
+            const hint = document.getElementById('chat-hint');
+            if (dialogueStep < dialogueScenarios.length) {
+                const scenario = dialogueScenarios[dialogueStep];
+                hint.textContent = `💡 ${scenario.prompt} (Hint: "${scenario.hint}")`;
+                hint.classList.remove('hidden');
+            } else {
+                hint.classList.add('hidden');
+            }
+        }
+
+        function sendMessage(e) {
+            e.preventDefault();
+            const input = document.getElementById('chat-input');
+            const text = input.value.trim();
+            if (!text) return;
+
+            addChatMessage('user', text);
+            input.value = '';
+
+            setTimeout(() => {
+                if (dialogueStep < dialogueScenarios.length) {
+                    addChatMessage('ai', dialogueScenarios[dialogueStep].next);
+                    dialogueStep++;
+                    updateDialogueHint();
+                }
+            }, 500);
+        }
+
+        // STORY
+        function updateStory() {
+            const scene = storyScenes[storyScene];
+            document.getElementById('story-text').textContent = scene.text;
+
+            const choicesContainer = document.getElementById('story-choices');
+            choicesContainer.innerHTML = '';
+
+            if (scene.ending) {
+                const btn = document.createElement('button');
+                btn.className = 'nav-btn primary';
+                btn.textContent = 'Play Again';
+                btn.style.width = '100%';
+                btn.onclick = () => {
+                    storyScene = 0;
+                    storyPath = [];
+                    updateStory();
+                };
+                choicesContainer.appendChild(btn);
+            } else {
+                scene.choices.forEach(choice => {
+                    const btn = document.createElement('button');
+                    btn.className = 'story-choice';
+                    btn.innerHTML = `→ ${choice.text}<span class="story-words">Words: ${choice.words.join(', ')}</span>`;
+                    btn.onclick = () => {
+                        storyPath.push(choice.text);
+                        storyScene = choice.next;
+                        updateStory();
+                    };
+                    choicesContainer.appendChild(btn);
+                });
+            }
+
+            document.getElementById('story-path').textContent = storyPath.length > 0 
+                ? 'Your path: ' + storyPath.join(' → ') 
+                : '';
+        }
+
+        // Init
+        loadState();
+        initLevelButtons();
+    </script>
+</body>
+</html>
